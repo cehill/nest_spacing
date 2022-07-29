@@ -1,0 +1,63 @@
+---
+title: "nest_spacing"
+author: "Chris Hill"
+date: "`r Sys.Date()`"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Read in data into a file called "data" and show its structure
+- before you can execute this you have to save the nest card data as a csv and name it "nest_card_dataYYYYMMDD.csv" The filename has to match what's in the code below.
+- Then put the csv vile in Users/chill/github/nest_spacing/ (or your own appropriate directory if you're not me)
+- since nest card data is a big sprawling data file the resulting object in r is kind of a mess, see below.
+
+```{r read}
+data<-read.csv("nest_card_data20220728.csv")
+str(data)
+```
+
+## Rename columns
+- just renaming NEST_TERRITORY because it's too long.
+```{r}
+library(dplyr)
+data <- dplyr::rename(data, TERRITORY = NESTING_TERRITORY)
+```
+
+
+## Filter data
+- keep only the valid nests and put them in "data2"
+- confirm that only nests with "TRUE" are left (*yes, it worked*)
+- I could also subset to just certain years at this point
+```{r}
+  data2<-subset(data, VALID_NEST==TRUE) #remove all but type 2 visits
+unique(data2$VALID_NEST) #what's left
+```
+
+## Get rid of columns I don't need
+- keep 7 columns in an object called "data3"
+- show what's left using "head" and "str"
+- Hatch date is not recognized as dates here, it's "chr" data still.
+```{r subset}
+data3 <- subset(data2, select = c(NEST_NUMBER,TERRITORY,VALID_NEST,LAT,LONG,HATCH_DATE, HD_YEAR))
+
+head(data3)#what's left
+```
+```{r}
+str(data3)
+```
+
+## Convert date from character class to r date format
+- then check with "sapply"
+
+
+```{r}
+library(lubridate)
+data3$HATCH_DATE <- lubridate::dmy(data3$HATCH_DATE) #convert date
+sapply(data3, class) #check classes to make sure date was reformatted
+```
+
+
+
