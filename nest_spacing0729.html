@@ -377,13 +377,13 @@ own appropriate directory if you’re not me)</li>
 <li>since nest card data is a big sprawling data file the resulting
 object in r is kind of a mess, see below.</li>
 </ul>
-<pre class="r"><code>data&lt;-read.csv(&quot;nest_card_data20220728.csv&quot;)
+<pre class="r"><code>data&lt;-read.csv(&quot;nest_card_data20220729.csv&quot;)
 str(data)</code></pre>
 <pre><code>## &#39;data.frame&#39;:    222 obs. of  94 variables:
 ##  $ NEST_NUMBER          : chr  &quot;LOSH-2018-01&quot; &quot;LOSH-2018-02&quot; &quot;LOSH-2018-03&quot; &quot;LOSH-2018-04&quot; ...
 ##  $ NESTING_TERRITORY    : chr  &quot;COURTH&quot; &quot;CYPRES&quot; &quot;RIVERF&quot; &quot;DISCGO&quot; ...
 ##  $ FINDER               : chr  &quot;KMM&quot; &quot;461L&quot; &quot;CEH&quot; &quot;CEH&quot; ...
-##  $ VALID_NEST           : chr  &quot;TRUE&quot; &quot;TRUE&quot; &quot;TRUE&quot; &quot;TRUE&quot; ...
+##  $ VALID_NEST           : logi  TRUE TRUE TRUE TRUE TRUE TRUE ...
 ##  $ FOUND_DATE           : chr  &quot;5-Apr-18&quot; &quot;5-Apr-18&quot; &quot;5-Apr-18&quot; &quot;7-Apr-18&quot; ...
 ##  $ FOUND_STAGE          : chr  &quot;laying&quot; &quot;incubating&quot; &quot;incubating&quot; &quot;nestlings&quot; ...
 ##  $ FD_YEAR              : chr  &quot;2018&quot; &quot;2018&quot; &quot;2018&quot; &quot;2018&quot; ...
@@ -478,7 +478,7 @@ str(data)</code></pre>
 <div id="rename-columns" class="section level2">
 <h2>Rename columns</h2>
 <ul>
-<li>just renaming NEST_TERRITORY because it’s too long.</li>
+<li>just renaming NEST_TERRITORY because it’s annoyingly long.</li>
 </ul>
 <pre class="r"><code>library(dplyr)</code></pre>
 <pre><code>## 
@@ -491,8 +491,8 @@ str(data)</code></pre>
 ##     intersect, setdiff, setequal, union</code></pre>
 <pre class="r"><code>data &lt;- dplyr::rename(data, TERRITORY = NESTING_TERRITORY)</code></pre>
 </div>
-<div id="filter-data" class="section level2">
-<h2>Filter data</h2>
+<div id="filter-data-into-data2" class="section level2">
+<h2>Filter data into “data2”</h2>
 <ul>
 <li>keep only the valid nests and put them in “data2”</li>
 <li>confirm that only nests with “TRUE” are left (<em>yes, it
@@ -501,10 +501,10 @@ worked</em>)</li>
 </ul>
 <pre class="r"><code>  data2&lt;-subset(data, VALID_NEST==TRUE) #remove all but type 2 visits
 unique(data2$VALID_NEST) #what&#39;s left</code></pre>
-<pre><code>## [1] &quot;TRUE&quot;</code></pre>
+<pre><code>## [1] TRUE</code></pre>
 </div>
-<div id="get-rid-of-columns-i-dont-need" class="section level2">
-<h2>Get rid of columns I don’t need</h2>
+<div id="get-rid-of-columns-i-dont-need-to-make-data3" class="section level2">
+<h2>Get rid of columns I don’t need to make “data3”</h2>
 <ul>
 <li>keep 7 columns in an object called “data3”</li>
 <li>show what’s left using “head” and “str”</li>
@@ -522,10 +522,10 @@ head(data3)#what&#39;s left</code></pre>
 ## 5 LOSH-2018-05    HGTCCC       TRUE 33.793708 -79.001623  26-Apr-18    2018
 ## 6 LOSH-2018-06    501WAL       TRUE 33.778008 -78.987116  21-Apr-18    2018</code></pre>
 <pre class="r"><code>str(data3)</code></pre>
-<pre><code>## &#39;data.frame&#39;:    197 obs. of  7 variables:
+<pre><code>## &#39;data.frame&#39;:    194 obs. of  7 variables:
 ##  $ NEST_NUMBER: chr  &quot;LOSH-2018-01&quot; &quot;LOSH-2018-02&quot; &quot;LOSH-2018-03&quot; &quot;LOSH-2018-04&quot; ...
 ##  $ TERRITORY  : chr  &quot;COURTH&quot; &quot;CYPRES&quot; &quot;RIVERF&quot; &quot;DISCGO&quot; ...
-##  $ VALID_NEST : chr  &quot;TRUE&quot; &quot;TRUE&quot; &quot;TRUE&quot; &quot;TRUE&quot; ...
+##  $ VALID_NEST : logi  TRUE TRUE TRUE TRUE TRUE TRUE ...
 ##  $ LAT        : chr  &quot;33.830689&quot; &quot;33.831623&quot; &quot;33.830476&quot; &quot;33.797461&quot; ...
 ##  $ LONG       : chr  &quot;-79.047979&quot; &quot;-79.045607&quot; &quot;-79.045899&quot; &quot;-79.003753&quot; ...
 ##  $ HATCH_DATE : chr  &quot;14-Apr-18&quot; &quot;12-Apr-18&quot; &quot;7-Apr-18&quot; &quot;23-Mar-18&quot; ...
@@ -535,6 +535,9 @@ head(data3)#what&#39;s left</code></pre>
 <h2>Convert date from character class to r date format</h2>
 <ul>
 <li>then check with “sapply”</li>
+<li>one date is still not parsing (I though getting rid of invalid nests
+would solve that, but I guess not)</li>
+<li>write data3 to a file on my hard drive</li>
 </ul>
 <pre class="r"><code>library(lubridate)</code></pre>
 <pre><code>## 
@@ -545,9 +548,53 @@ head(data3)#what&#39;s left</code></pre>
 <pre class="r"><code>data3$HATCH_DATE &lt;- lubridate::dmy(data3$HATCH_DATE) #convert date
 sapply(data3, class) #check classes to make sure date was reformatted</code></pre>
 <pre><code>## NEST_NUMBER   TERRITORY  VALID_NEST         LAT        LONG  HATCH_DATE 
-## &quot;character&quot; &quot;character&quot; &quot;character&quot; &quot;character&quot; &quot;character&quot;      &quot;Date&quot; 
+## &quot;character&quot; &quot;character&quot;   &quot;logical&quot; &quot;character&quot; &quot;character&quot;      &quot;Date&quot; 
 ##     HD_YEAR 
 ## &quot;character&quot;</code></pre>
+<pre class="r"><code>write.csv(data3, &quot;data3.csv&quot;, row.names = FALSE)</code></pre>
+</div>
+<div id="to-calculate-distances-between-points-i-am-going-to-install-the-package-sp-and-use-the-function-spdistsn1." class="section level2">
+<h2>To calculate distances between points I am going to install the
+package “sp” and use the function spDistsN1().</h2>
+<ul>
+<li>description: The function returns a vector of distances between a
+matrix of 2D points, first column longitude, second column latitude, and
+a single 2D point, using Euclidean or Great Circle distance (WGS84
+ellipsoid) methods.</li>
+<li>wait maybe there’s a better way, see below for a more complete
+solution (I’m commenting out the “sp” stuff for now)</li>
+</ul>
+<pre class="r"><code>#install.packages(&quot;sp&quot;)
+#library(&quot;sp&quot;)</code></pre>
+</div>
+<div id="another-source-suggests-using-packages-sp-and-rgeos-so-i-will-load-rgeos-too.-or-maybe-sf-is-the-best-way.-ill-try-sf-first." class="section level2">
+<h2>Another source suggests using packages sp and rgeos so I will load
+rgeos, too. Or maybe sf is the best way. I’ll try sf first.</h2>
+<ul>
+<li>link to post: <a href="https://stackoverflow.com/questions/21977720/r-finding-closest-neighboring-point-and-number-of-neighbors-within-a-given-rad" class="uri">https://stackoverflow.com/questions/21977720/r-finding-closest-neighboring-point-and-number-of-neighbors-within-a-given-rad</a></li>
+<li>The documentation on rgeos says “Please note that rgeos will be
+retired by the end of 2023, plan transition to sf functions using GEOS
+at your earliest convenience.” So I will load sf. I guess I’ll try to
+implement the solution using sf even though I don’t understand a lot of
+the basics of the reprex. For now the “install.packages(”sf”) is
+commented out because I was already playing with it.</li>
+</ul>
+<pre class="r"><code>#install.packages(&quot;rgeos&quot;)
+#library(rgeos)
+#install.packages(&quot;sf&quot;)
+library(sf)</code></pre>
+<pre><code>## Linking to GEOS 3.10.2, GDAL 3.4.2, PROJ 8.2.1; sf_use_s2() is TRUE</code></pre>
+</div>
+<div id="load-the-data-in-data3-into-data4-a-sf-object" class="section level2">
+<h2>Load the data in data3 into data4, a “sf object”</h2>
+<ul>
+<li>“sf”, for “simple features”, is a format for containing both
+geographic information and attributes in the same file. It’s a special
+data frame where geographic information is in a special column, and
+datum is specified as well.</li>
+</ul>
+<pre class="r"><code>data4 &lt;- st_as_sf(data3, coords = c(&quot;LAT&quot;, &quot;LONG&quot;), 
+crs = &quot;+proj=longlat +ellps=WGS84 +datum=WGS84 +no_defs&quot;)</code></pre>
 </div>
 
 

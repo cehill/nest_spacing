@@ -15,19 +15,19 @@ knitr::opts_chunk$set(echo = TRUE)
 - since nest card data is a big sprawling data file the resulting object in r is kind of a mess, see below.
 
 ```{r read}
-data<-read.csv("nest_card_data20220728.csv")
+data<-read.csv("nest_card_data20220729.csv")
 str(data)
 ```
 
 ## Rename columns
-- just renaming NEST_TERRITORY because it's too long.
+- just renaming NEST_TERRITORY because it's annoyingly long.
 ```{r}
 library(dplyr)
 data <- dplyr::rename(data, TERRITORY = NESTING_TERRITORY)
 ```
 
 
-## Filter data
+## Filter data into "data2"
 - keep only the valid nests and put them in "data2"
 - confirm that only nests with "TRUE" are left (*yes, it worked*)
 - I could also subset to just certain years at this point
@@ -36,7 +36,7 @@ data <- dplyr::rename(data, TERRITORY = NESTING_TERRITORY)
 unique(data2$VALID_NEST) #what's left
 ```
 
-## Get rid of columns I don't need
+## Get rid of columns I don't need to make "data3"
 - keep 7 columns in an object called "data3"
 - show what's left using "head" and "str"
 - Hatch date is not recognized as dates here, it's "chr" data still.
@@ -51,13 +51,42 @@ str(data3)
 
 ## Convert date from character class to r date format
 - then check with "sapply"
+- one date is still not parsing (I though getting rid of invalid nests would solve that, but I guess not)
+- write data3 to a file on my hard drive
 
 
 ```{r}
 library(lubridate)
 data3$HATCH_DATE <- lubridate::dmy(data3$HATCH_DATE) #convert date
 sapply(data3, class) #check classes to make sure date was reformatted
+write.csv(data3, "data3.csv", row.names = FALSE)
 ```
 
 
+## To calculate distances between points I am going to install the package "sp" and use the function spDistsN1().
+- description: The function returns a vector of distances between a matrix of 2D points, first column longitude, second column latitude, and a single 2D point, using Euclidean or Great Circle distance (WGS84 ellipsoid) methods.
+- wait maybe there's a better way, see below for a more complete solution (I'm commenting out the "sp" stuff for now)
 
+
+```{r}
+#install.packages("sp")
+#library("sp")
+```
+## Another source suggests using packages sp and rgeos so I will load rgeos, too. Or maybe sf is the best way.  I'll try sf first.
+- link to post: https://stackoverflow.com/questions/21977720/r-finding-closest-neighboring-point-and-number-of-neighbors-within-a-given-rad
+- The documentation on rgeos says "Please note that rgeos will be retired by the end of 2023,
+plan transition to sf functions using GEOS at your earliest convenience." So I will load sf.  I guess I'll try to implement the solution using sf even though I don't understand a lot of the basics of the reprex.  For now the "install.packages("sf") is commented out because I was already playing with it.
+```{r}
+#install.packages("rgeos")
+#library(rgeos)
+#install.packages("sf")
+library(sf)
+```
+## Load the data in data3 into data4, a "sf object" 
+- "sf", for "simple features", is a format for containing both geographic information and attributes in the same file. It's a special data frame where geographic information is in a special column, and datum is specified as well.
+
+
+```{r}
+data4 <- st_as_sf(data3, coords = c("LAT", "LONG"), 
+crs = "+proj=longlat +ellps=WGS84 +datum=WGS84 +no_defs")
+```
